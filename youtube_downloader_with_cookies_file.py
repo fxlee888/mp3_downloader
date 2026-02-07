@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-YouTube to MP3 Downloader
+YouTube to MP3 Downloader - Version avec fichier cookies
 Application graphique pour télécharger des vidéos YouTube en format MP3
+Cette version utilise un fichier cookies.txt exporté du navigateur
 """
 
 import tkinter as tk
@@ -16,14 +17,15 @@ from pathlib import Path
 class YouTubeDownloader:
     def __init__(self, root):
         self.root = root
-        self.root.title("YouTube MP3 Downloader")
-        self.root.geometry("700x500")
+        self.root.title("YouTube MP3 Downloader (avec fichier cookies)")
+        self.root.geometry("700x550")
         self.root.resizable(True, True)
 
         # Variables
         self.url_var = tk.StringVar()
         self.destination_var = tk.StringVar(value=str(Path.home() / "Downloads"))
         self.quality_var = tk.StringVar(value="0")
+        self.cookies_file_var = tk.StringVar(value=str(Path(__file__).parent / "youtube_cookies.txt"))
         self.is_downloading = False
 
         self.setup_ui()
@@ -52,16 +54,26 @@ class YouTubeDownloader:
         dest_entry = ttk.Entry(main_frame, textvariable=self.destination_var, width=40)
         dest_entry.grid(row=1, column=1, sticky=(tk.W, tk.E), pady=5, padx=5)
 
-        browse_btn = ttk.Button(main_frame, text="Parcourir...", command=self.browse_destination)
-        browse_btn.grid(row=1, column=2, sticky=tk.W, pady=5, padx=5)
+        browse_dest_btn = ttk.Button(main_frame, text="Parcourir...", command=self.browse_destination)
+        browse_dest_btn.grid(row=1, column=2, sticky=tk.W, pady=5, padx=5)
+
+        # Fichier cookies
+        ttk.Label(main_frame, text="Fichier Cookies:", font=('Arial', 10, 'bold')).grid(
+            row=2, column=0, sticky=tk.W, pady=5
+        )
+        cookies_entry = ttk.Entry(main_frame, textvariable=self.cookies_file_var, width=40)
+        cookies_entry.grid(row=2, column=1, sticky=(tk.W, tk.E), pady=5, padx=5)
+
+        browse_cookies_btn = ttk.Button(main_frame, text="Parcourir...", command=self.browse_cookies)
+        browse_cookies_btn.grid(row=2, column=2, sticky=tk.W, pady=5, padx=5)
 
         # Qualité Audio
         ttk.Label(main_frame, text="Qualité Audio:", font=('Arial', 10, 'bold')).grid(
-            row=2, column=0, sticky=tk.W, pady=5
+            row=3, column=0, sticky=tk.W, pady=5
         )
 
         quality_frame = ttk.Frame(main_frame)
-        quality_frame.grid(row=2, column=1, columnspan=2, sticky=tk.W, pady=5, padx=5)
+        quality_frame.grid(row=3, column=1, columnspan=2, sticky=tk.W, pady=5, padx=5)
 
         quality_combo = ttk.Combobox(
             quality_frame,
@@ -83,27 +95,34 @@ class YouTubeDownloader:
             command=self.start_download,
             style='Accent.TButton'
         )
-        self.download_btn.grid(row=3, column=0, columnspan=3, pady=15)
+        self.download_btn.grid(row=4, column=0, columnspan=3, pady=15)
+
+        # Info sur les cookies
+        info_frame = ttk.Frame(main_frame)
+        info_frame.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
+
+        info_text = "💡 Pour exporter les cookies, consultez EXPORT_COOKIES_GUIDE.md"
+        ttk.Label(info_frame, text=info_text, foreground="blue", font=('Arial', 9)).pack()
 
         # Zone de logs
         ttk.Label(main_frame, text="Logs:", font=('Arial', 10, 'bold')).grid(
-            row=4, column=0, sticky=tk.W, pady=5
+            row=6, column=0, sticky=tk.W, pady=5
         )
 
         self.log_text = scrolledtext.ScrolledText(
             main_frame,
-            height=15,
+            height=12,
             width=70,
             wrap=tk.WORD,
             font=('Consolas', 9)
         )
-        self.log_text.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
-        main_frame.rowconfigure(5, weight=1)
+        self.log_text.grid(row=7, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
+        main_frame.rowconfigure(7, weight=1)
 
         # Barre de statut
         self.status_label = ttk.Label(
             self.root,
-            text="Prêt",
+            text="Prêt - Utilise un fichier cookies exporté",
             relief=tk.SUNKEN,
             anchor=tk.W
         )
@@ -118,6 +137,17 @@ class YouTubeDownloader:
         if folder:
             self.destination_var.set(folder)
             self.log(f"Dossier de destination: {folder}")
+
+    def browse_cookies(self):
+        """Ouvre un dialogue pour sélectionner le fichier cookies"""
+        file = filedialog.askopenfilename(
+            initialdir=Path(__file__).parent,
+            title="Sélectionner le fichier cookies.txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
+        )
+        if file:
+            self.cookies_file_var.set(file)
+            self.log(f"Fichier cookies: {file}")
 
     def log(self, message):
         """Ajoute un message dans la zone de logs"""
@@ -134,6 +164,7 @@ class YouTubeDownloader:
         """Valide les entrées utilisateur"""
         url = self.url_var.get().strip()
         destination = self.destination_var.get().strip()
+        cookies_file = self.cookies_file_var.get().strip()
 
         if not url:
             messagebox.showerror("Erreur", "Veuillez entrer une URL YouTube")
@@ -145,6 +176,23 @@ class YouTubeDownloader:
 
         if not os.path.isdir(destination):
             messagebox.showerror("Erreur", "Le dossier de destination n'existe pas")
+            return False
+
+        if not cookies_file:
+            result = messagebox.askyesno(
+                "Attention",
+                "Aucun fichier cookies spécifié.\n\n"
+                "YouTube demande maintenant des cookies pour télécharger.\n"
+                "Voulez-vous continuer sans cookies (peut échouer) ?"
+            )
+            if not result:
+                return False
+        elif not os.path.isfile(cookies_file):
+            messagebox.showerror(
+                "Erreur",
+                f"Le fichier cookies n'existe pas:\n{cookies_file}\n\n"
+                "Consultez EXPORT_COOKIES_GUIDE.md pour exporter vos cookies."
+            )
             return False
 
         return True
@@ -170,29 +218,38 @@ class YouTubeDownloader:
         url = self.url_var.get().strip()
         destination = self.destination_var.get().strip()
         quality = self.quality_var.get()
+        cookies_file = self.cookies_file_var.get().strip()
 
         self.log("=" * 70)
-        self.log(f"Démarrage du téléchargement...")
+        self.log(f"Démarrage du téléchargement avec fichier cookies...")
         self.log(f"URL: {url}")
         self.log(f"Destination: {destination}")
         self.log(f"Qualité audio: {quality} (0 = meilleure)")
+        self.log(f"Fichier cookies: {cookies_file if cookies_file else 'Aucun'}")
         self.log("=" * 70)
         self.update_status("Téléchargement en cours...")
 
-        # Commande yt-dlp avec options pour contourner les restrictions YouTube
+        # Commande yt-dlp avec fichier cookies
         command = [
             'yt-dlp',
-            '-x',  # Extract audio
+            '-f', 'bestaudio',  # Meilleur audio disponible
+            '--extract-audio',  # Extrait l'audio
             '--audio-format', 'mp3',
             '--audio-quality', quality,
             '-o', os.path.join(destination, '%(title)s.%(ext)s'),  # Output template
-            '--extractor-args', 'youtube:player_client=ios',  # Utilise le client iOS (plus fiable)
-            '--no-check-certificates',  # Ignore les erreurs de certificat
-            '--user-agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15',
-            '--extractor-retries', '5',  # Nombre de tentatives
-            '--http-chunk-size', '10M',  # Taille des chunks
-            url
         ]
+
+        # Ajoute le fichier cookies s'il existe
+        if cookies_file and os.path.isfile(cookies_file):
+            command.extend(['--cookies', cookies_file])
+            # N'utilise PAS player_client=ios avec les cookies (incompatible)
+            command.extend(['--extractor-args', 'youtube:player_skip=webpage'])
+        else:
+            # Sans cookies, utilise le client iOS
+            command.extend(['--extractor-args', 'youtube:player_client=ios'])
+            command.extend(['--no-check-certificates'])
+
+        command.append(url)
 
         try:
             # Exécute la commande
@@ -221,6 +278,11 @@ class YouTubeDownloader:
                 self.log("=" * 70)
                 self.log(f"Erreur lors du téléchargement (code: {process.returncode})")
                 self.log("=" * 70)
+
+                if not cookies_file or not os.path.isfile(cookies_file):
+                    self.log("\n💡 CONSEIL: Exportez vos cookies YouTube et réessayez.")
+                    self.log("   Consultez EXPORT_COOKIES_GUIDE.md pour les instructions.")
+
                 self.update_status("Erreur lors du téléchargement")
                 messagebox.showerror("Erreur", "Le téléchargement a échoué. Vérifiez les logs.")
 

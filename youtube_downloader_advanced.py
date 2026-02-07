@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-YouTube to MP3 Downloader
+YouTube to MP3 Downloader - Version Avancée
 Application graphique pour télécharger des vidéos YouTube en format MP3
+Cette version utilise des options avancées sans cookies
 """
 
 import tkinter as tk
@@ -16,7 +17,7 @@ from pathlib import Path
 class YouTubeDownloader:
     def __init__(self, root):
         self.root = root
-        self.root.title("YouTube MP3 Downloader")
+        self.root.title("YouTube MP3 Downloader (Version Avancée)")
         self.root.geometry("700x500")
         self.root.resizable(True, True)
 
@@ -103,7 +104,7 @@ class YouTubeDownloader:
         # Barre de statut
         self.status_label = ttk.Label(
             self.root,
-            text="Prêt",
+            text="Prêt - Version avancée sans cookies",
             relief=tk.SUNKEN,
             anchor=tk.W
         )
@@ -172,25 +173,33 @@ class YouTubeDownloader:
         quality = self.quality_var.get()
 
         self.log("=" * 70)
-        self.log(f"Démarrage du téléchargement...")
+        self.log(f"Démarrage du téléchargement (version avancée)...")
         self.log(f"URL: {url}")
         self.log(f"Destination: {destination}")
         self.log(f"Qualité audio: {quality} (0 = meilleure)")
         self.log("=" * 70)
         self.update_status("Téléchargement en cours...")
 
-        # Commande yt-dlp avec options pour contourner les restrictions YouTube
+        # Commande yt-dlp avec options avancées (sans cookies)
         command = [
             'yt-dlp',
-            '-x',  # Extract audio
-            '--audio-format', 'mp3',
-            '--audio-quality', quality,
-            '-o', os.path.join(destination, '%(title)s.%(ext)s'),  # Output template
-            '--extractor-args', 'youtube:player_client=ios',  # Utilise le client iOS (plus fiable)
-            '--no-check-certificates',  # Ignore les erreurs de certificat
-            '--user-agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15',
-            '--extractor-retries', '5',  # Nombre de tentatives
-            '--http-chunk-size', '10M',  # Taille des chunks
+            '-f', 'bestaudio',  # Meilleur audio disponible
+            '--extract-audio',  # Extrait l'audio
+            '--audio-format', 'mp3',  # Convertit en MP3
+            '--audio-quality', quality,  # Qualité audio
+            '-o', os.path.join(destination, '%(title)s.%(ext)s'),  # Template de sortie
+            '--extractor-args', 'youtube:player_client=ios',  # Client iOS
+            '--extractor-args', 'youtube:player_skip=webpage,configs',  # Skip certaines étapes
+            '--user-agent', 'com.google.ios.youtube/19.09.3 (iPhone14,3; U; CPU iOS 15_6 like Mac OS X)',
+            '--referer', 'https://www.youtube.com/',
+            '--add-header', 'Accept-Language:en-US,en;q=0.9',
+            '--add-header', 'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            '--no-check-certificates',
+            '--prefer-insecure',
+            '--geo-bypass',
+            '--retries', '10',
+            '--fragment-retries', '10',
+            '--http-chunk-size', '10M',
             url
         ]
 

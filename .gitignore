@@ -24,3 +24,16 @@ ENV/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Fichiers de cookies sensibles (NE PAS POUSSER!)
+*cookies.txt
+*.cookies
+youtube_cookies.txt
+
+# Claude Code
+.claude/
+
+# Fichiers temporaires
+nul
+*.log
+*.tmp

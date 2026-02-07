@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-YouTube to MP3 Downloader
+YouTube to MP3 Downloader - Version avec Cookies du navigateur
 Application graphique pour télécharger des vidéos YouTube en format MP3
+Cette version utilise les cookies du navigateur pour contourner l'erreur 403
 """
 
 import tkinter as tk
@@ -16,14 +17,15 @@ from pathlib import Path
 class YouTubeDownloader:
     def __init__(self, root):
         self.root = root
-        self.root.title("YouTube MP3 Downloader")
-        self.root.geometry("700x500")
+        self.root.title("YouTube MP3 Downloader (avec Cookies)")
+        self.root.geometry("700x550")
         self.root.resizable(True, True)
 
         # Variables
         self.url_var = tk.StringVar()
         self.destination_var = tk.StringVar(value=str(Path.home() / "Downloads"))
         self.quality_var = tk.StringVar(value="0")
+        self.browser_var = tk.StringVar(value="firefox")
         self.is_downloading = False
 
         self.setup_ui()
@@ -76,6 +78,27 @@ class YouTubeDownloader:
             row=0, column=1, sticky=tk.W, padx=10
         )
 
+        # Choix du navigateur
+        ttk.Label(main_frame, text="Navigateur:", font=('Arial', 10, 'bold')).grid(
+            row=3, column=0, sticky=tk.W, pady=5
+        )
+
+        browser_frame = ttk.Frame(main_frame)
+        browser_frame.grid(row=3, column=1, columnspan=2, sticky=tk.W, pady=5, padx=5)
+
+        browser_combo = ttk.Combobox(
+            browser_frame,
+            textvariable=self.browser_var,
+            values=['chrome', 'firefox', 'edge', 'brave', 'opera', 'safari'],
+            state='readonly',
+            width=15
+        )
+        browser_combo.grid(row=0, column=0, sticky=tk.W)
+
+        ttk.Label(browser_frame, text="(Utilise les cookies de ce navigateur)").grid(
+            row=0, column=1, sticky=tk.W, padx=10
+        )
+
         # Bouton de téléchargement
         self.download_btn = ttk.Button(
             main_frame,
@@ -83,11 +106,11 @@ class YouTubeDownloader:
             command=self.start_download,
             style='Accent.TButton'
         )
-        self.download_btn.grid(row=3, column=0, columnspan=3, pady=15)
+        self.download_btn.grid(row=4, column=0, columnspan=3, pady=15)
 
         # Zone de logs
         ttk.Label(main_frame, text="Logs:", font=('Arial', 10, 'bold')).grid(
-            row=4, column=0, sticky=tk.W, pady=5
+            row=5, column=0, sticky=tk.W, pady=5
         )
 
         self.log_text = scrolledtext.ScrolledText(
@@ -97,13 +120,13 @@ class YouTubeDownloader:
             wrap=tk.WORD,
             font=('Consolas', 9)
         )
-        self.log_text.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
-        main_frame.rowconfigure(5, weight=1)
+        self.log_text.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
+        main_frame.rowconfigure(6, weight=1)
 
         # Barre de statut
         self.status_label = ttk.Label(
             self.root,
-            text="Prêt",
+            text="Prêt - Version avec cookies du navigateur",
             relief=tk.SUNKEN,
             anchor=tk.W
         )
@@ -170,27 +193,26 @@ class YouTubeDownloader:
         url = self.url_var.get().strip()
         destination = self.destination_var.get().strip()
         quality = self.quality_var.get()
+        browser = self.browser_var.get()
 
         self.log("=" * 70)
-        self.log(f"Démarrage du téléchargement...")
+        self.log(f"Démarrage du téléchargement avec cookies {browser}...")
         self.log(f"URL: {url}")
         self.log(f"Destination: {destination}")
         self.log(f"Qualité audio: {quality} (0 = meilleure)")
+        self.log(f"Navigateur: {browser}")
         self.log("=" * 70)
         self.update_status("Téléchargement en cours...")
 
-        # Commande yt-dlp avec options pour contourner les restrictions YouTube
+        # Commande yt-dlp avec cookies du navigateur
         command = [
             'yt-dlp',
-            '-x',  # Extract audio
+            '-f', 'bestaudio/best',  # Meilleur audio ou meilleure qualité disponible
+            '--extract-audio',  # Extrait l'audio
             '--audio-format', 'mp3',
             '--audio-quality', quality,
             '-o', os.path.join(destination, '%(title)s.%(ext)s'),  # Output template
-            '--extractor-args', 'youtube:player_client=ios',  # Utilise le client iOS (plus fiable)
-            '--no-check-certificates',  # Ignore les erreurs de certificat
-            '--user-agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15',
-            '--extractor-retries', '5',  # Nombre de tentatives
-            '--http-chunk-size', '10M',  # Taille des chunks
+            '--cookies-from-browser', browser,  # Utilise les cookies du navigateur
             url
         ]
 

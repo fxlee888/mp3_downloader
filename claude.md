@@ -9,21 +9,34 @@ Cette application permet de télécharger facilement des vidéos YouTube et de l
 ## Prérequis
 
 - Python 3.x
-- yt-dlp (installé)
+- yt-dlp (dernière version)
 - ffmpeg (installé)
+- **Node.js (RECOMMANDÉ)** - Requis pour certaines vidéos YouTube
 
 ## Installation des dépendances
+
+### Méthode automatique (Recommandée)
+
+Double-cliquez sur `install_dependencies.bat` pour installer/vérifier automatiquement toutes les dépendances.
+
+### Méthode manuelle
 
 Si vous n'avez pas encore installé les outils nécessaires :
 
 ```bash
-# Installer yt-dlp
-pip install yt-dlp
+# 1. Installer/Mettre à jour yt-dlp (IMPORTANT)
+pip install --upgrade yt-dlp
 
-# Installer ffmpeg (Windows)
+# 2. Installer ffmpeg (Windows)
 # Téléchargez depuis https://ffmpeg.org/download.html
 # Ou utilisez chocolatey: choco install ffmpeg
+
+# 3. Installer Node.js (RECOMMANDÉ)
+# Téléchargez depuis https://nodejs.org/
+# Choisissez la version LTS (Long Term Support)
 ```
+
+**⚠️ IMPORTANT :** YouTube change régulièrement ses protections. Mettez TOUJOURS à jour yt-dlp avant utilisation avec `update_ytdlp.bat` ou `pip install --upgrade yt-dlp`.
 
 ## Utilisation
 
@@ -109,12 +122,15 @@ Options :
 mp3_downloader/
 ├── youtube_downloader.py      # Application principale
 ├── build_exe.bat              # Script pour créer l'executable
+├── install_dependencies.bat   # Installation automatique des dépendances
+├── update_ytdlp.bat           # Mise à jour rapide de yt-dlp
 ├── create_icon.py             # Script pour générer une icône personnalisée
 ├── app_icon.ico               # Icône de l'application (note de musique)
 ├── requirements.txt           # Dépendances Python
 ├── BUILD_INSTRUCTIONS.md      # Instructions détaillées pour créer l'exe
 ├── CUSTOM_ICON.md             # Guide pour personnaliser l'icône
-├── claude.md                  # Documentation principale
+├── TROUBLESHOOTING.md         # Guide de dépannage complet (Erreur 403, etc.)
+├── CLAUDE.md                  # Documentation principale
 └── dist/                      # Dossier contenant l'executable après build
     └── YouTube_MP3_Downloader.exe
 ```
@@ -166,28 +182,54 @@ L'application gère les erreurs suivantes :
 
 ## Dépannage
 
+### 🔴 Erreur 403 Forbidden (Erreur YouTube)
+
+**Symptômes :**
+```
+ERROR: unable to download video data: HTTP Error 403: Forbidden
+WARNING: No supported JavaScript runtime could be found
+```
+
+**Solutions rapides :**
+
+1. **Double-cliquez sur `update_ytdlp.bat`** - Met à jour yt-dlp (OBLIGATOIRE)
+2. **Installez Node.js** depuis https://nodejs.org/ (version LTS)
+3. **Redémarrez** votre ordinateur après l'installation
+4. **Relancez** l'application
+
+**Le code a été mis à jour automatiquement** avec les options suivantes pour contourner les restrictions YouTube :
+- Utilisation des clients mobiles (Android/iOS)
+- User-agent personnalisé
+- Ignore les erreurs de certificat
+
+📖 **Pour plus de détails, consultez `TROUBLESHOOTING.md`**
+
 ### yt-dlp non trouvé
 
 Si vous obtenez l'erreur "yt-dlp n'est pas trouvé" :
 
-1. Vérifiez l'installation : `yt-dlp --version`
-2. Ajoutez yt-dlp au PATH système
-3. Ou spécifiez le chemin complet dans le code
+1. Double-cliquez sur `install_dependencies.bat`
+2. Ou manuellement : `pip install yt-dlp`
+3. Vérifiez l'installation : `yt-dlp --version`
+4. Ajoutez Python au PATH système si nécessaire
 
 ### ffmpeg non trouvé
 
 Si la conversion échoue :
 
-1. Vérifiez l'installation : `ffmpeg -version`
-2. Ajoutez ffmpeg au PATH système
+1. Double-cliquez sur `install_dependencies.bat` pour vérifier
+2. Vérifiez l'installation : `ffmpeg -version`
 3. Téléchargez depuis https://ffmpeg.org/download.html
+4. Ou utilisez Chocolatey : `choco install ffmpeg`
+5. Ajoutez ffmpeg au PATH système
 
-### Erreur de téléchargement
+### Erreur de téléchargement générique
 
-- Vérifiez que l'URL est correcte et accessible
+- Vérifiez que l'URL YouTube est complète et correcte
 - Vérifiez votre connexion internet
-- Certaines vidéos peuvent avoir des restrictions géographiques
-- Consultez les logs pour plus de détails
+- Mettez à jour yt-dlp : `pip install --upgrade yt-dlp`
+- Consultez `TROUBLESHOOTING.md` pour plus de solutions
+- Consultez les logs dans l'application pour plus de détails
 
 ## Améliorations futures possibles
 
