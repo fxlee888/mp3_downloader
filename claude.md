@@ -180,27 +180,50 @@ L'application gère les erreurs suivantes :
 4. **Connexion internet** : Une connexion stable améliore les téléchargements
 5. **Formats supportés** : Fonctionne avec toutes les vidéos YouTube publiques
 
+## Système Multi-Stratégies (Nouveau !)
+
+L'application utilise maintenant un **système intelligent de tentatives multiples** pour maximiser les chances de succès. Si une stratégie échoue, l'application essaie automatiquement la suivante.
+
+### Stratégies de téléchargement (dans l'ordre)
+
+1. **🟢 Cookies Firefox + Client Android** - Recommandé pour les vidéos nécessitant une authentification
+2. **🟢 Cookies Firefox + Client Web** - Stratégie par défaut avec authentification
+3. **🟡 Sans cookies + Client iOS** - Pour les vidéos publiques sans restrictions
+4. **🟡 Mode basique** - Dernière tentative avec composants distants uniquement
+
+### Prérequis importants
+
+- **yt-dlp à jour** : Absolument nécessaire (utilisez `update_ytdlp.bat`)
+- **Node.js installé** : Requis pour résoudre les challenges JavaScript de YouTube
+- **Firefox installé** : Recommandé pour utiliser l'authentification par cookies
+- **Connexion internet** : Nécessaire pour télécharger les composants distants
+
 ## Dépannage
 
-### 🔴 Erreur 403 Forbidden (Erreur YouTube)
+### 🔴 Erreur 403 Forbidden / Signature solving failed
 
 **Symptômes :**
 ```
 ERROR: unable to download video data: HTTP Error 403: Forbidden
-WARNING: No supported JavaScript runtime could be found
+WARNING: Signature solving failed
+WARNING: n challenge solving failed
+ERROR: Requested format is not available
 ```
 
 **Solutions rapides :**
 
-1. **Double-cliquez sur `update_ytdlp.bat`** - Met à jour yt-dlp (OBLIGATOIRE)
-2. **Installez Node.js** depuis https://nodejs.org/ (version LTS)
-3. **Redémarrez** votre ordinateur après l'installation
-4. **Relancez** l'application
+1. **✅ Mettez à jour yt-dlp** - Double-cliquez sur `update_ytdlp.bat` (OBLIGATOIRE)
+2. **✅ Installez Node.js** depuis https://nodejs.org/ (version LTS) - REQUIS
+3. **✅ Installez Firefox** si pas déjà fait (pour l'authentification par cookies)
+4. **✅ Vérifiez votre connexion internet** (pour télécharger les composants distants)
+5. **✅ Redémarrez** votre ordinateur après l'installation
+6. **✅ Relancez** l'application
 
-**Le code a été mis à jour automatiquement** avec les options suivantes pour contourner les restrictions YouTube :
-- Utilisation des clients mobiles (Android/iOS)
-- User-agent personnalisé
-- Ignore les erreurs de certificat
+**Le code utilise maintenant :**
+- `--remote-components ejs:github` - Télécharge automatiquement les scripts de résolution de challenges
+- Authentification par cookies Firefox
+- 4 stratégies de téléchargement automatiques
+- Résolution des challenges JavaScript avec Node.js
 
 📖 **Pour plus de détails, consultez `TROUBLESHOOTING.md`**
 

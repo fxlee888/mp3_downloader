@@ -11,30 +11,59 @@ Cette application permet de télécharger facilement des vidéos YouTube et de l
 
 ## Fonctionnalités
 
-- Interface graphique tkinter (aucune dépendance externe)
-- Téléchargement YouTube avec yt-dlp
-- Conversion automatique en MP3
-- Qualité audio personnalisable (0 = meilleure, 9 = plus faible)
-- Sélection du dossier de destination
-- Logs en temps réel
-- Génération d'executable Windows (.exe)
-- Icône personnalisée
+- ✨ **Système multi-stratégies intelligent** - Essaie automatiquement 4 stratégies jusqu'au succès
+- 🎨 Interface graphique tkinter (aucune dépendance externe)
+- 📥 Téléchargement YouTube avec yt-dlp (dernière version)
+- 🎵 Conversion automatique en MP3 haute qualité
+- 🔧 Qualité audio personnalisable (0 = meilleure, 9 = plus faible)
+- 📁 Sélection du dossier de destination
+- 📊 Logs en temps réel avec progression détaillée
+- 🍪 Support des cookies Firefox pour l'authentification
+- 🚀 Génération d'executable Windows (.exe)
+- 🎨 Icône personnalisée (note de musique verte)
 
 ## Prérequis
 
-- Python 3.x
-- yt-dlp
-- ffmpeg
+### Obligatoires
+- **Python 3.x**
+- **yt-dlp** (dernière version - mise à jour régulière requise)
+- **ffmpeg** (pour la conversion MP3)
+- **Node.js** (requis pour résoudre les challenges JavaScript de YouTube)
+
+### Recommandés
+- **Firefox** (pour l'authentification par cookies - meilleur taux de succès)
 
 ## Installation
 
-```bash
-# Installer yt-dlp
-pip install yt-dlp
+### Méthode automatique (Recommandée)
 
-# Installer ffmpeg
+Double-cliquez sur `install_dependencies.bat` pour installer/vérifier automatiquement toutes les dépendances.
+
+### Méthode manuelle
+
+```bash
+# 1. Installer/Mettre à jour yt-dlp (IMPORTANT - à faire régulièrement)
+pip install --upgrade yt-dlp
+
+# 2. Installer Node.js (REQUIS)
+# Téléchargez depuis: https://nodejs.org/
+# Choisissez la version LTS (Long Term Support)
+# Redémarrez après l'installation
+
+# 3. Installer Firefox (RECOMMANDÉ)
+# Téléchargez depuis: https://www.mozilla.org/firefox/
+
+# 4. Installer ffmpeg
 # Windows: https://ffmpeg.org/download.html
 # Ou avec chocolatey: choco install ffmpeg
+```
+
+### Vérifier les installations
+
+```bash
+yt-dlp --version   # Devrait afficher 2025.x ou plus récent
+node --version     # Devrait afficher v16.x ou plus récent
+ffmpeg -version    # Devrait afficher la version de ffmpeg
 ```
 
 ## Utilisation
@@ -60,12 +89,24 @@ pyinstaller --onefile --windowed --name "YouTube_MP3_Downloader" --icon=app_icon
 
 L'executable sera dans `dist\YouTube_MP3_Downloader.exe`
 
+## Système Multi-Stratégies
+
+L'application utilise un **système intelligent de tentatives multiples** pour maximiser les chances de succès :
+
+1. 🟢 **Cookies Firefox + Client Android** - Idéal pour vidéos avec authentification
+2. 🟢 **Cookies Firefox + Client Web** - Stratégie par défaut (la plus fiable)
+3. 🟡 **Sans cookies + Client iOS** - Pour vidéos publiques
+4. 🟡 **Mode basique** - Dernière tentative de secours
+
+Si une stratégie échoue, l'application passe automatiquement à la suivante. Vous verrez dans les logs quelle stratégie a réussi !
+
 ## Interface
 
 1. **URL YouTube** : Collez l'URL de la vidéo
 2. **Destination** : Choisissez le dossier de sortie
 3. **Qualité Audio** : Sélectionnez la qualité (0-9)
 4. **Télécharger** : Lancez le téléchargement
+5. **Logs** : Suivez la progression en temps réel
 
 ## Personnalisation
 
@@ -95,24 +136,45 @@ mp3_downloader/
 
 ## Documentation
 
-- `claude.md` : Documentation complète et détaillée
+- `CLAUDE.md` : Documentation complète et détaillée du projet
+- `TROUBLESHOOTING.md` : **Guide de dépannage complet** (erreurs 403, problèmes de téléchargement, etc.)
 - `BUILD_INSTRUCTIONS.md` : Instructions pour créer l'executable
 - `CUSTOM_ICON.md` : Guide de personnalisation de l'icône
 
 ## Dépannage
 
+### ⚠️ Erreur 403 / Signature solving failed
+
+**Solutions rapides :**
+1. Double-cliquez sur `update_ytdlp.bat` (OBLIGATOIRE)
+2. Vérifiez que Node.js est installé : `node --version`
+3. Vérifiez que Firefox est installé
+4. Redémarrez votre ordinateur
+5. Relancez l'application
+
+**📖 Pour plus de détails, consultez `TROUBLESHOOTING.md`**
+
 ### yt-dlp non trouvé
 ```bash
-yt-dlp --version  # Vérifier l'installation
-pip install yt-dlp  # Réinstaller si nécessaire
+yt-dlp --version              # Vérifier l'installation
+pip install --upgrade yt-dlp  # Installer/Mettre à jour
 ```
+
+### Node.js non trouvé
+```bash
+node --version  # Vérifier l'installation
+```
+Si non installé : https://nodejs.org/ (version LTS)
 
 ### ffmpeg non trouvé
 ```bash
 ffmpeg -version  # Vérifier l'installation
 ```
+Si non installé : https://ffmpeg.org/download.html
 
-Téléchargez depuis https://ffmpeg.org/download.html et ajoutez au PATH.
+### "Skipping client X since it does not support cookies"
+
+C'est **normal** ! L'application essaie automatiquement la stratégie suivante. Aucune action requise.
 
 ## Licence
 

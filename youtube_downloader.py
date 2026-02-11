@@ -179,66 +179,120 @@ class YouTubeDownloader:
         self.log("=" * 70)
         self.update_status("Téléchargement en cours...")
 
-        # Commande yt-dlp avec options pour contourner les restrictions YouTube
-        command = [
-            'yt-dlp',
-            '-x',  # Extract audio
-            '--audio-format', 'mp3',
-            '--audio-quality', quality,
-            '-o', os.path.join(destination, '%(title)s.%(ext)s'),  # Output template
-            '--extractor-args', 'youtube:player_client=ios',  # Utilise le client iOS (plus fiable)
-            '--no-check-certificates',  # Ignore les erreurs de certificat
-            '--user-agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15',
-            '--extractor-retries', '5',  # Nombre de tentatives
-            '--http-chunk-size', '10M',  # Taille des chunks
-            url
+        # Stratégies de téléchargement à essayer dans l'ordre
+        strategies = [
+            {
+                'name': 'Cookies Firefox + Client Android',
+                'args': [
+                    '--remote-components', 'ejs:github',
+                    '--cookies-from-browser', 'firefox',
+                    '--extractor-args', 'youtube:player_client=android',
+                    '--no-check-certificates',
+                ]
+            },
+            {
+                'name': 'Cookies Firefox + Client Web',
+                'args': [
+                    '--remote-components', 'ejs:github',
+                    '--cookies-from-browser', 'firefox',
+                    '--no-check-certificates',
+                ]
+            },
+            {
+                'name': 'Sans cookies + Client iOS',
+                'args': [
+                    '--remote-components', 'ejs:github',
+                    '--extractor-args', 'youtube:player_client=ios',
+                    '--no-check-certificates',
+                    '--user-agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15',
+                ]
+            },
+            {
+                'name': 'Mode basique avec composants distants',
+                'args': [
+                    '--remote-components', 'ejs:github',
+                    '--no-check-certificates',
+                ]
+            }
         ]
 
-        try:
-            # Exécute la commande
-            process = subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-                universal_newlines=True
-            )
-
-            # Affiche la sortie en temps réel
-            for line in process.stdout:
-                self.log(line.strip())
-
-            process.wait()
-
-            if process.returncode == 0:
+        success = False
+        for i, strategy in enumerate(strategies, 1):
+            if i > 1:
+                self.log("\n" + "=" * 70)
+                self.log(f"Tentative {i}/{len(strategies)}: {strategy['name']}")
                 self.log("=" * 70)
-                self.log("Téléchargement terminé avec succès!")
-                self.log("=" * 70)
-                self.update_status("Téléchargement réussi")
-                messagebox.showinfo("Succès", "Le téléchargement est terminé!")
             else:
+                self.log(f"Stratégie: {strategy['name']}")
                 self.log("=" * 70)
-                self.log(f"Erreur lors du téléchargement (code: {process.returncode})")
-                self.log("=" * 70)
-                self.update_status("Erreur lors du téléchargement")
-                messagebox.showerror("Erreur", "Le téléchargement a échoué. Vérifiez les logs.")
 
-        except FileNotFoundError:
-            error_msg = "yt-dlp n'est pas trouvé. Assurez-vous qu'il est installé et dans le PATH."
-            self.log(error_msg)
-            self.update_status("Erreur: yt-dlp non trouvé")
-            messagebox.showerror("Erreur", error_msg)
+            # Commande yt-dlp de base
+            command = [
+                'yt-dlp',
+                '-x',  # Extract audio
+                '--audio-format', 'mp3',
+                '--audio-quality', quality,
+                '-o', os.path.join(destination, '%(title)s.%(ext)s'),  # Output template
+                '--extractor-retries', '3',  # Nombre de tentatives
+            ]
 
-        except Exception as e:
-            error_msg = f"Erreur inattendue: {str(e)}"
-            self.log(error_msg)
-            self.update_status("Erreur")
-            messagebox.showerror("Erreur", error_msg)
+            # Ajoute les arguments spécifiques à la stratégie
+            command.extend(strategy['args'])
+            command.append(url)
 
-        finally:
-            self.is_downloading = False
-            self.download_btn.config(state='normal')
+            try:
+                # Exécute la commande
+                process = subprocess.Popen(
+                    command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True
+                )
+
+                # Affiche la sortie en temps réel
+                for line in process.stdout:
+                    self.log(line.strip())
+
+                process.wait()
+
+                if process.returncode == 0:
+                    self.log("=" * 70)
+                    self.log(f"✓ Téléchargement réussi avec: {strategy['name']}")
+                    self.log("=" * 70)
+                    self.update_status("Téléchargement réussi")
+                    messagebox.showinfo("Succès", f"Le téléchargement est terminé!\n\nStratégie utilisée: {strategy['name']}")
+                    success = True
+                    break
+                else:
+                    self.log(f"✗ Échec avec cette stratégie (code: {process.returncode})")
+
+            except FileNotFoundError:
+                error_msg = "yt-dlp n'est pas trouvé. Assurez-vous qu'il est installé et dans le PATH."
+                self.log(error_msg)
+                self.update_status("Erreur: yt-dlp non trouvé")
+                messagebox.showerror("Erreur", error_msg)
+                break
+
+            except Exception as e:
+                self.log(f"✗ Erreur avec cette stratégie: {str(e)}")
+
+        if not success:
+            self.log("\n" + "=" * 70)
+            self.log("✗ ÉCHEC: Toutes les stratégies ont échoué")
+            self.log("=" * 70)
+            self.log("\nSuggestions:")
+            self.log("1. Vérifiez que yt-dlp est à jour: pip install --upgrade yt-dlp")
+            self.log("2. Vérifiez que Node.js est installé")
+            self.log("3. Vérifiez votre connexion internet")
+            self.log("4. Essayez avec une autre vidéo YouTube")
+            self.log("5. La vidéo est peut-être restreinte géographiquement")
+            self.update_status("Échec du téléchargement")
+            messagebox.showerror("Erreur", "Toutes les stratégies ont échoué.\nConsultez les logs pour plus de détails.")
+
+        self.is_downloading = False
+        self.download_btn.config(state='normal')
 
 
 def main():
