@@ -89,6 +89,35 @@ pyinstaller --onefile --windowed --name "YouTube_MP3_Downloader" --icon=app_icon
 
 L'executable sera dans `dist\YouTube_MP3_Downloader.exe`
 
+### Option 3 : Mode CLI en lot (download_batch.py)
+
+Pour télécharger plusieurs vidéos d'un coup, sans interface graphique, utilisez `download_batch.py`. Il réutilise le même système multi-stratégies que l'application GUI (voir `download_strategies.py`).
+
+**Syntaxe :**
+
+```bash
+python download_batch.py [urls...] -d DESTINATION [-f FICHIER] [-q QUALITE]
+```
+
+| Option | Description |
+|---|---|
+| `urls` (positionnel) | Une ou plusieurs URLs YouTube, séparées par des espaces |
+| `-f`, `--file` | Fichier texte avec une URL par ligne (les lignes vides ou commençant par `#` sont ignorées) |
+| `-d`, `--destination` | **Obligatoire.** Dossier de destination (créé automatiquement s'il n'existe pas) |
+| `-q`, `--quality` | Qualité audio 0-9 (0 = meilleure, défaut) |
+
+**Exemples :**
+
+```bash
+# Une ou plusieurs URLs directement en argument
+python download_batch.py "https://www.youtube.com/watch?v=XXXX" -d "D:\Musique" -q 0
+
+# Liste d'URLs depuis un fichier texte (une URL par ligne)
+python download_batch.py -f "urls.txt" -d "D:\Musique" -q 5
+```
+
+Le script traite les URLs une par une, affiche la progression et un résumé final (`X/Y téléchargements réussis`). Les URLs contenant un paramètre `&list=` ne téléchargent que la vidéo ciblée (`--no-playlist`), jamais la playlist entière.
+
 ## Système Multi-Stratégies
 
 L'application utilise un **système intelligent de tentatives multiples** pour maximiser les chances de succès :
@@ -123,7 +152,9 @@ python create_icon.py
 
 ```
 mp3_downloader/
-├── youtube_downloader.py      # Application principale
+├── youtube_downloader.py      # Application principale (GUI)
+├── download_batch.py          # Téléchargement en lot (CLI)
+├── download_strategies.py     # Stratégies yt-dlp partagées (GUI + CLI)
 ├── create_icon.py             # Générateur d'icône
 ├── build_exe.bat              # Script de build exe
 ├── app_icon.ico               # Icône de l'application
