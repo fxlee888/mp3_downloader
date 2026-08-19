@@ -12,6 +12,8 @@ import threading
 import os
 from pathlib import Path
 
+from download_strategies import STRATEGIES
+
 
 class YouTubeDownloader:
     def __init__(self, root):
@@ -180,41 +182,7 @@ class YouTubeDownloader:
         self.update_status("Téléchargement en cours...")
 
         # Stratégies de téléchargement à essayer dans l'ordre
-        strategies = [
-            {
-                'name': 'Cookies Firefox + Client Android',
-                'args': [
-                    '--remote-components', 'ejs:github',
-                    '--cookies-from-browser', 'firefox',
-                    '--extractor-args', 'youtube:player_client=android',
-                    '--no-check-certificates',
-                ]
-            },
-            {
-                'name': 'Cookies Firefox + Client Web',
-                'args': [
-                    '--remote-components', 'ejs:github',
-                    '--cookies-from-browser', 'firefox',
-                    '--no-check-certificates',
-                ]
-            },
-            {
-                'name': 'Sans cookies + Client iOS',
-                'args': [
-                    '--remote-components', 'ejs:github',
-                    '--extractor-args', 'youtube:player_client=ios',
-                    '--no-check-certificates',
-                    '--user-agent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15',
-                ]
-            },
-            {
-                'name': 'Mode basique avec composants distants',
-                'args': [
-                    '--remote-components', 'ejs:github',
-                    '--no-check-certificates',
-                ]
-            }
-        ]
+        strategies = STRATEGIES
 
         success = False
         for i, strategy in enumerate(strategies, 1):
